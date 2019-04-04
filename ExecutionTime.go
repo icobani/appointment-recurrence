@@ -3,58 +3,63 @@ package appointment_recurrence
 import (
 	"log"
 	"time"
-	)
+)
 
-
-func (this *ExecutionTimeModel) calcNextExecutionTimeForWeekly() {
-	if this.RecurrencePattern != E_RecurrencePatternWeekly {
-		log.Println("Haftalık hesapla tanımlı değil")
-		return
+func (this *AppointmentRecurrence) calcNextExecutionTimeForWeekly() (time.Time, *ErrorStruct) {
+	if this.ETimeModel.RecurrencePattern != E_RecurrencePatternWeekly {
+		// log.Println("Haftalık hesapla tanımlı değil")
+		errTime, _ := time.Parse("2006-01-02", "0001-01-01")
+		return errTime, &ErrorStruct{
+			"Haftalık hesapla tanımlı değil",
+		}
 	}
 
 	var tDay time.Time
-	if this.StartDate.After(time.Now()) {
-		tDay = time.Date(this.StartDate.Year(),
-			this.StartDate.Month(),
-			this.StartDate.Day(), 0, 0, 0, 0,tr_Location)
+	if this.ETimeModel.StartDate.After(time.Now()) {
+		tDay = time.Date(this.ETimeModel.StartDate.Year(),
+			this.ETimeModel.StartDate.Month(),
+			this.ETimeModel.StartDate.Day(), 0, 0, 0, 0, tr_Location)
 	} else {
 		tDay = time.Now()
 	}
 
-	if this.EndDate.Before(time.Now()) && !this.NoEndDate {
-		log.Println("Bitiş tarihi geçti.", this.EndDate)
-		return
+	if this.ETimeModel.EndDate.Before(time.Now()) && !this.ETimeModel.NoEndDate {
+		// log.Println("Bitiş tarihi geçti.", this.ETimeModel.EndDate)
+		errTime, _ := time.Parse("2006-01-02", "0001-01-01")
+		return errTime, &ErrorStruct{
+			"Bitiş tarihi geçti",
+		}
 	}
 
 timeLoop:
 	for i := 1; i <= 7; i++ {
 		switch tDay.Weekday() {
 		case time.Sunday:
-			if this.OnSunday {
+			if this.ETimeModel.OnSunday {
 				break timeLoop
 			}
 		case time.Monday:
-			if this.OnMonday {
+			if this.ETimeModel.OnMonday {
 				break timeLoop
 			}
 		case time.Tuesday:
-			if this.OnTuesday {
+			if this.ETimeModel.OnTuesday {
 				break timeLoop
 			}
 		case time.Wednesday:
-			if this.OnWednesday {
+			if this.ETimeModel.OnWednesday {
 				break timeLoop
 			}
 		case time.Thursday:
-			if this.OnThursday {
+			if this.ETimeModel.OnThursday {
 				break timeLoop
 			}
 		case time.Friday:
-			if this.OnFriday {
+			if this.ETimeModel.OnFriday {
 				break timeLoop
 			}
 		case time.Saturday:
-			if this.OnSaturday {
+			if this.ETimeModel.OnSaturday {
 				break timeLoop
 			}
 		}
@@ -65,8 +70,8 @@ timeLoop:
 		tDay.Year(),
 		tDay.Month(),
 		tDay.Day(),
-		int(this.StartTimeHour),
-		int(this.StartTimeMinute),
+		int(this.ETimeModel.StartTimeHour),
+		int(this.ETimeModel.StartTimeMinute),
 		0,
 		0,
 		tr_Location)
@@ -74,36 +79,44 @@ timeLoop:
 	if tDay.Before(time.Now()) {
 		tDay = tDay.AddDate(0, 0, 7)
 	}
-	this.NextExecutingTime = tDay
+	this.ETimeModel.NextExecutingTime = tDay
+
+	return tDay, nil
 }
 
-func (this *ExecutionTimeModel) calcNextExecutionTimeForDaily() {
-	if this.RecurrencePattern != E_RecurrencePatternDaily {
-		log.Println("Haftalık hesapla tanımlı değil")
-		return
+func (this *AppointmentRecurrence) calcNextExecutionTimeForDaily() (time.Time, *ErrorStruct) {
+	if this.ETimeModel.RecurrencePattern != E_RecurrencePatternDaily {
+		// log.Println("Haftalık hesapla tanımlı değil")
+		errTime, _ := time.Parse("2006-01-02", "0001-01-01")
+		return errTime, &ErrorStruct{
+			"Haftalık hesapla tanımlı değil",
+		}
 	}
 
 	var tDay time.Time
-	if this.StartDate.After(time.Now()) {
-		log.Println("Başlangıç tarihi henüz gelmemiş", this.StartDate)
-		tDay = time.Date(this.StartDate.Year(),
-			this.StartDate.Month(),
-			this.StartDate.Day(), 0, 0, 0, 0, tr_Location)
+	if this.ETimeModel.StartDate.After(time.Now()) {
+		log.Println("Başlangıç tarihi henüz gelmemiş", this.ETimeModel.StartDate)
+		tDay = time.Date(this.ETimeModel.StartDate.Year(),
+			this.ETimeModel.StartDate.Month(),
+			this.ETimeModel.StartDate.Day(), 0, 0, 0, 0, tr_Location)
 	} else {
 		tDay = time.Now()
 	}
 
-	if this.EndDate.Before(time.Now()) && !this.NoEndDate {
-		log.Println("Bitiş tarihi geçti.", this.EndDate)
-		return
+	if this.ETimeModel.EndDate.Before(time.Now()) && !this.ETimeModel.NoEndDate {
+		// log.Println("Bitiş tarihi geçti.", this.ETimeModel.EndDate)
+		errTime, _ := time.Parse("2006-01-02", "0001-01-01")
+		return errTime, &ErrorStruct{
+			"Bitiş tarihi geçti",
+		}
 	}
 
 	tDay = time.Date(
 		tDay.Year(),
 		tDay.Month(),
 		tDay.Day(),
-		int(this.StartTimeHour),
-		int(this.StartTimeMinute),
+		int(this.ETimeModel.StartTimeHour),
+		int(this.ETimeModel.StartTimeMinute),
 		0,
 		0,
 		tr_Location)
@@ -111,38 +124,46 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForDaily() {
 	if tDay.Before(time.Now()) {
 		tDay = tDay.AddDate(0, 0, 1)
 	}
-	this.NextExecutingTime = tDay
+	this.ETimeModel.NextExecutingTime = tDay
+
+	return tDay, nil
 }
 
-func (this *ExecutionTimeModel) calcNextExecutionTimeForMonthly() {
-	if this.RecurrencePattern != E_RecurrencePatternMonthly {
-		log.Println("Aylık hesapla tanımlı değil")
-		return
+func (this *AppointmentRecurrence) calcNextExecutionTimeForMonthly() (time.Time, *ErrorStruct) {
+	if this.ETimeModel.RecurrencePattern != E_RecurrencePatternMonthly {
+		// log.Println("Aylık hesapla tanımlı değil")
+		errTime, _ := time.Parse("2006-01-02", "0001-01-01")
+		return errTime, &ErrorStruct{
+			"Aylık hesapla tanımlı değil",
+		}
 	}
 
 	var tDay time.Time
-	if this.StartDate.After(time.Now()) {
-		log.Println("Başlangıç tarihi henüz gelmemiş", this.StartDate)
-		tDay = time.Date(this.StartDate.Year(),
-			this.StartDate.Month(),
-			this.StartDate.Day(), 0, 0, 0, 0, tr_Location)
+	if this.ETimeModel.StartDate.After(time.Now()) {
+		log.Println("Başlangıç tarihi henüz gelmemiş", this.ETimeModel.StartDate)
+		tDay = time.Date(this.ETimeModel.StartDate.Year(),
+			this.ETimeModel.StartDate.Month(),
+			this.ETimeModel.StartDate.Day(), 0, 0, 0, 0, tr_Location)
 	} else {
 		tDay = time.Now()
 	}
 
-	if this.EndDate.Before(time.Now()) && !this.NoEndDate {
-		log.Println("Bitiş tarihi geçti.", this.EndDate)
-		return
+	if this.ETimeModel.EndDate.Before(time.Now()) && !this.ETimeModel.NoEndDate {
+		// log.Println("Bitiş tarihi geçti.", this.ETimeModel.EndDate)
+		errTime, _ := time.Parse("2006-01-02", "0001-01-01")
+		return errTime, &ErrorStruct{
+			"Bitiş tarihi geçti",
+		}
 	}
 
-	switch this.On {
+	switch this.ETimeModel.On {
 	case E_OnDay:
 		tDay = time.Date(
 			tDay.Year(),
 			tDay.Month(),
-			int(this.Every),
-			int(this.StartTimeHour),
-			int(this.StartTimeMinute),
+			int(this.ETimeModel.Every),
+			int(this.ETimeModel.StartTimeHour),
+			int(this.ETimeModel.StartTimeMinute),
 			0,
 			0,
 			tr_Location)
@@ -153,14 +174,14 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForMonthly() {
 
 		break
 	case E_OnFirst:
-		switch this.OnValue {
+		switch this.ETimeModel.OnValue {
 		case E_OnValueDay: // Ayın günü
 			tDay = time.Date(
 				tDay.Year(),
 				tDay.Month(),
 				1,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				0,
 				0,
 				tr_Location)
@@ -173,8 +194,8 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForMonthly() {
 			tDay = FirstWeekday(
 				tDay.Year(),
 				tDay.Month(),
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				1)
 
 			break
@@ -183,8 +204,8 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForMonthly() {
 			tDay = FirstWeekendDay(
 				tDay.Year(),
 				tDay.Month(),
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				1)
 
 			break
@@ -194,8 +215,8 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForMonthly() {
 				tDay.Year(),
 				tDay.Month(),
 				time.Sunday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				1)
 
 			break
@@ -205,8 +226,8 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForMonthly() {
 				tDay.Year(),
 				tDay.Month(),
 				time.Monday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				1)
 
 			break
@@ -216,8 +237,8 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForMonthly() {
 				tDay.Year(),
 				tDay.Month(),
 				time.Tuesday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				1)
 
 			break
@@ -227,8 +248,8 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForMonthly() {
 				tDay.Year(),
 				tDay.Month(),
 				time.Wednesday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				1)
 
 			break
@@ -238,8 +259,8 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForMonthly() {
 				tDay.Year(),
 				tDay.Month(),
 				time.Thursday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				1)
 
 			break
@@ -249,8 +270,8 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForMonthly() {
 				tDay.Year(),
 				tDay.Month(),
 				time.Friday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				1)
 
 			break
@@ -260,22 +281,22 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForMonthly() {
 				tDay.Year(),
 				tDay.Month(),
 				time.Saturday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				1)
 
 			break
 		}
 		break
 	case E_OnSecond:
-		switch this.OnValue {
+		switch this.ETimeModel.OnValue {
 		case E_OnValueDay: // Ayın ilk iş günü
 			tDay = time.Date(
 				tDay.Year(),
 				tDay.Month(),
 				2,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				0,
 				0,
 				tr_Location)
@@ -288,8 +309,8 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForMonthly() {
 			tDay = FirstWeekday(
 				tDay.Year(),
 				tDay.Month(),
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				1).AddDate(0, 0, 7)
 
 			break
@@ -298,8 +319,8 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForMonthly() {
 			tDay = FirstWeekendDay(
 				tDay.Year(),
 				tDay.Month(),
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				1).AddDate(0, 0, 7)
 
 			break
@@ -309,8 +330,8 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForMonthly() {
 				tDay.Year(),
 				tDay.Month(),
 				time.Sunday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				1).AddDate(0, 0, 7)
 
 			break
@@ -320,8 +341,8 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForMonthly() {
 				tDay.Year(),
 				tDay.Month(),
 				time.Monday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				1).AddDate(0, 0, 7)
 
 			break
@@ -331,8 +352,8 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForMonthly() {
 				tDay.Year(),
 				tDay.Month(),
 				time.Tuesday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				1).AddDate(0, 0, 7)
 
 			break
@@ -342,8 +363,8 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForMonthly() {
 				tDay.Year(),
 				tDay.Month(),
 				time.Wednesday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				1).AddDate(0, 0, 7)
 
 			break
@@ -353,8 +374,8 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForMonthly() {
 				tDay.Year(),
 				tDay.Month(),
 				time.Thursday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				1).AddDate(0, 0, 7)
 
 			break
@@ -364,8 +385,8 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForMonthly() {
 				tDay.Year(),
 				tDay.Month(),
 				time.Friday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				1).AddDate(0, 0, 7)
 
 			break
@@ -375,22 +396,22 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForMonthly() {
 				tDay.Year(),
 				tDay.Month(),
 				time.Saturday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				1).AddDate(0, 0, 7)
 
 			break
 		}
 		break
 	case E_OnThird:
-		switch this.OnValue {
+		switch this.ETimeModel.OnValue {
 		case E_OnValueDay: // Ayın ilk iş günü
 			tDay = time.Date(
 				tDay.Year(),
 				tDay.Month(),
 				3,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				0,
 				0,
 				tr_Location)
@@ -403,8 +424,8 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForMonthly() {
 			tDay = FirstWeekday(
 				tDay.Year(),
 				tDay.Month(),
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				1).AddDate(0, 0, 7*2)
 
 			break
@@ -413,8 +434,8 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForMonthly() {
 			tDay = FirstWeekendDay(
 				tDay.Year(),
 				tDay.Month(),
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				1).AddDate(0, 0, 7*2)
 
 			break
@@ -424,8 +445,8 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForMonthly() {
 				tDay.Year(),
 				tDay.Month(),
 				time.Sunday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				1).AddDate(0, 0, 7*2)
 
 			break
@@ -435,8 +456,8 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForMonthly() {
 				tDay.Year(),
 				tDay.Month(),
 				time.Monday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				1).AddDate(0, 0, 7*2)
 
 			break
@@ -446,8 +467,8 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForMonthly() {
 				tDay.Year(),
 				tDay.Month(),
 				time.Tuesday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				1).AddDate(0, 0, 7*2)
 
 			break
@@ -457,8 +478,8 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForMonthly() {
 				tDay.Year(),
 				tDay.Month(),
 				time.Wednesday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				1).AddDate(0, 0, 7*2)
 
 			break
@@ -468,8 +489,8 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForMonthly() {
 				tDay.Year(),
 				tDay.Month(),
 				time.Thursday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				1).AddDate(0, 0, 7*2)
 
 			break
@@ -479,8 +500,8 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForMonthly() {
 				tDay.Year(),
 				tDay.Month(),
 				time.Friday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				1).AddDate(0, 0, 7*2)
 
 			break
@@ -490,22 +511,22 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForMonthly() {
 				tDay.Year(),
 				tDay.Month(),
 				time.Saturday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				1).AddDate(0, 0, 7*2)
 
 			break
 		}
 		break
 	case E_OnFourth:
-		switch this.OnValue {
+		switch this.ETimeModel.OnValue {
 		case E_OnValueDay: // Ayın ilk iş günü
 			tDay = time.Date(
 				tDay.Year(),
 				tDay.Month(),
 				4,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				0,
 				0,
 				tr_Location)
@@ -518,8 +539,8 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForMonthly() {
 			tDay = FirstWeekday(
 				tDay.Year(),
 				tDay.Month(),
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				1).AddDate(0, 0, 7*3)
 
 			break
@@ -528,8 +549,8 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForMonthly() {
 			tDay = FirstWeekendDay(
 				tDay.Year(),
 				tDay.Month(),
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				1).AddDate(0, 0, 7*3)
 
 			break
@@ -539,8 +560,8 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForMonthly() {
 				tDay.Year(),
 				tDay.Month(),
 				time.Sunday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				1).AddDate(0, 0, 7*3)
 
 			break
@@ -550,8 +571,8 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForMonthly() {
 				tDay.Year(),
 				tDay.Month(),
 				time.Monday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				1).AddDate(0, 0, 7*3)
 
 			break
@@ -561,8 +582,8 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForMonthly() {
 				tDay.Year(),
 				tDay.Month(),
 				time.Tuesday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				1).AddDate(0, 0, 7*3)
 
 			break
@@ -572,8 +593,8 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForMonthly() {
 				tDay.Year(),
 				tDay.Month(),
 				time.Wednesday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				1).AddDate(0, 0, 7*3)
 
 			break
@@ -583,8 +604,8 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForMonthly() {
 				tDay.Year(),
 				tDay.Month(),
 				time.Thursday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				1).AddDate(0, 0, 7*3)
 
 			break
@@ -594,8 +615,8 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForMonthly() {
 				tDay.Year(),
 				tDay.Month(),
 				time.Friday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				1).AddDate(0, 0, 7*3)
 
 			break
@@ -605,8 +626,8 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForMonthly() {
 				tDay.Year(),
 				tDay.Month(),
 				time.Saturday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				1).AddDate(0, 0, 7*3)
 
 			break
@@ -614,39 +635,47 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForMonthly() {
 		break
 	}
 
-	this.NextExecutingTime = tDay
+	this.ETimeModel.NextExecutingTime = tDay
+
+	return tDay, nil
 }
 
-func (this *ExecutionTimeModel) calcNextExecutionTimeForYearly() {
-	if this.RecurrencePattern != E_RecurrencePatternYearly {
-		log.Println("Yıllık hesapla tanımlı değil")
-		return
+func (this *AppointmentRecurrence) calcNextExecutionTimeForYearly() (time.Time, *ErrorStruct) {
+	if this.ETimeModel.RecurrencePattern != E_RecurrencePatternYearly {
+		// log.Println("Yıllık hesapla tanımlı değil")
+		errTime, _ := time.Parse("2006-01-02", "0001-01-01")
+		return errTime, &ErrorStruct{
+			"Yıllık hesapla tanımlı değil",
+		}
 	}
 
 	var tDay time.Time
-	if this.StartDate.After(time.Now()) {
-		log.Println("Başlangıç tarihi henüz gelmemiş", this.StartDate)
-		tDay = time.Date(this.StartDate.Year(),
-			this.StartDate.Month(),
-			this.StartDate.Day(), 0, 0, 0, 0, tr_Location)
+	if this.ETimeModel.StartDate.After(time.Now()) {
+		log.Println("Başlangıç tarihi henüz gelmemiş", this.ETimeModel.StartDate)
+		tDay = time.Date(this.ETimeModel.StartDate.Year(),
+			this.ETimeModel.StartDate.Month(),
+			this.ETimeModel.StartDate.Day(), 0, 0, 0, 0, tr_Location)
 	} else {
 		tDay = time.Now()
 	}
 
-	if this.EndDate.Before(time.Now()) && !this.NoEndDate {
-		log.Println("Bitiş tarihi geçti.", this.EndDate)
-		return
+	if this.ETimeModel.EndDate.Before(time.Now()) && !this.ETimeModel.NoEndDate {
+		// log.Println("Bitiş tarihi geçti.", this.ETimeModel.EndDate)
+		errTime, _ := time.Parse("2006-01-02", "0001-01-01")
+		return errTime, &ErrorStruct{
+			"Bitiş tarihi geçti",
+		}
 	}
 
-	switch this.On {
+	switch this.ETimeModel.On {
 	case E_OnDay:
 
 		tDay = time.Date(
 			tDay.Year(),
-			time.Month(this.EveryMonthValue),
-			int(this.Every),
-			int(this.StartTimeHour),
-			int(this.StartTimeMinute),
+			time.Month(this.ETimeModel.EveryMonthValue),
+			int(this.ETimeModel.Every),
+			int(this.ETimeModel.StartTimeHour),
+			int(this.ETimeModel.StartTimeMinute),
 			0,
 			0,
 			tDay.Location(),
@@ -658,14 +687,14 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForYearly() {
 
 		break
 	case E_OnFirst:
-		switch this.OnValue {
+		switch this.ETimeModel.OnValue {
 		case E_OnValueDay: // Ayın ilk günü
 			tDay = time.Date(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
+				time.Month(this.ETimeModel.EveryMonthValue),
 				1,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				0,
 				0,
 				tr_Location)
@@ -677,9 +706,9 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForYearly() {
 
 			tDay = FirstWeekday(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				time.Month(this.ETimeModel.EveryMonthValue),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				12)
 
 			break
@@ -687,9 +716,9 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForYearly() {
 
 			tDay = FirstWeekendDay(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				time.Month(this.ETimeModel.EveryMonthValue),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				12)
 
 			break
@@ -697,10 +726,10 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForYearly() {
 
 			tDay = NextFirstDay(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
+				time.Month(this.ETimeModel.EveryMonthValue),
 				time.Sunday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				12)
 
 			break
@@ -708,10 +737,10 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForYearly() {
 
 			tDay = NextFirstDay(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
+				time.Month(this.ETimeModel.EveryMonthValue),
 				time.Monday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				12)
 
 			break
@@ -719,10 +748,10 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForYearly() {
 
 			tDay = NextFirstDay(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
+				time.Month(this.ETimeModel.EveryMonthValue),
 				time.Tuesday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				12)
 
 			break
@@ -730,10 +759,10 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForYearly() {
 
 			tDay = NextFirstDay(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
+				time.Month(this.ETimeModel.EveryMonthValue),
 				time.Wednesday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				12)
 
 			break
@@ -741,10 +770,10 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForYearly() {
 
 			tDay = NextFirstDay(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
+				time.Month(this.ETimeModel.EveryMonthValue),
 				time.Thursday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				12)
 
 			break
@@ -752,10 +781,10 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForYearly() {
 
 			tDay = NextFirstDay(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
+				time.Month(this.ETimeModel.EveryMonthValue),
 				time.Friday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				12)
 
 			break
@@ -763,24 +792,24 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForYearly() {
 
 			tDay = NextFirstDay(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
+				time.Month(this.ETimeModel.EveryMonthValue),
 				time.Saturday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				12)
 
 			break
 		}
 		break
 	case E_OnSecond:
-		switch this.OnValue {
+		switch this.ETimeModel.OnValue {
 		case E_OnValueDay: // Ayın ikinci günü
 			tDay = time.Date(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
+				time.Month(this.ETimeModel.EveryMonthValue),
 				2,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				0,
 				0,
 				tr_Location)
@@ -792,9 +821,9 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForYearly() {
 
 			tDay = FirstWeekday(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				time.Month(this.ETimeModel.EveryMonthValue),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				12).AddDate(0, 0, 7*1)
 
 			break
@@ -802,9 +831,9 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForYearly() {
 
 			tDay = FirstWeekendDay(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				time.Month(this.ETimeModel.EveryMonthValue),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				12).AddDate(0, 0, 7*1)
 
 			break
@@ -812,10 +841,10 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForYearly() {
 
 			tDay = NextFirstDay(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
+				time.Month(this.ETimeModel.EveryMonthValue),
 				time.Sunday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				12).AddDate(0, 0, 7*1)
 
 			break
@@ -823,10 +852,10 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForYearly() {
 
 			tDay = NextFirstDay(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
+				time.Month(this.ETimeModel.EveryMonthValue),
 				time.Monday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				12).AddDate(0, 0, 7*1)
 
 			break
@@ -834,10 +863,10 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForYearly() {
 
 			tDay = NextFirstDay(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
+				time.Month(this.ETimeModel.EveryMonthValue),
 				time.Tuesday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				12).AddDate(0, 0, 7*1)
 
 			break
@@ -845,10 +874,10 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForYearly() {
 
 			tDay = NextFirstDay(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
+				time.Month(this.ETimeModel.EveryMonthValue),
 				time.Wednesday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				12).AddDate(0, 0, 7*1)
 
 			break
@@ -856,10 +885,10 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForYearly() {
 
 			tDay = NextFirstDay(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
+				time.Month(this.ETimeModel.EveryMonthValue),
 				time.Thursday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				12).AddDate(0, 0, 7*1)
 
 			break
@@ -867,10 +896,10 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForYearly() {
 
 			tDay = NextFirstDay(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
+				time.Month(this.ETimeModel.EveryMonthValue),
 				time.Friday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				12).AddDate(0, 0, 7*1)
 
 			break
@@ -878,24 +907,24 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForYearly() {
 
 			tDay = NextFirstDay(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
+				time.Month(this.ETimeModel.EveryMonthValue),
 				time.Saturday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				12).AddDate(0, 0, 7*1)
 
 			break
 		}
 		break
 	case E_OnThird:
-		switch this.OnValue {
+		switch this.ETimeModel.OnValue {
 		case E_OnValueDay: // Ayın ikinci günü
 			tDay = time.Date(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
+				time.Month(this.ETimeModel.EveryMonthValue),
 				3,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				0,
 				0,
 				tr_Location)
@@ -907,9 +936,9 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForYearly() {
 
 			tDay = FirstWeekday(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				time.Month(this.ETimeModel.EveryMonthValue),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				12).AddDate(0, 0, 7*2)
 
 			break
@@ -917,9 +946,9 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForYearly() {
 
 			tDay = FirstWeekendDay(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				time.Month(this.ETimeModel.EveryMonthValue),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				12).AddDate(0, 0, 7*2)
 
 			break
@@ -927,10 +956,10 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForYearly() {
 
 			tDay = NextFirstDay(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
+				time.Month(this.ETimeModel.EveryMonthValue),
 				time.Sunday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				12).AddDate(0, 0, 7*2)
 
 			break
@@ -938,10 +967,10 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForYearly() {
 
 			tDay = NextFirstDay(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
+				time.Month(this.ETimeModel.EveryMonthValue),
 				time.Monday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				12).AddDate(0, 0, 7*2)
 
 			break
@@ -949,10 +978,10 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForYearly() {
 
 			tDay = NextFirstDay(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
+				time.Month(this.ETimeModel.EveryMonthValue),
 				time.Tuesday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				12).AddDate(0, 0, 7*2)
 
 			break
@@ -960,10 +989,10 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForYearly() {
 
 			tDay = NextFirstDay(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
+				time.Month(this.ETimeModel.EveryMonthValue),
 				time.Wednesday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				12).AddDate(0, 0, 7*2)
 
 			break
@@ -971,10 +1000,10 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForYearly() {
 
 			tDay = NextFirstDay(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
+				time.Month(this.ETimeModel.EveryMonthValue),
 				time.Thursday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				12).AddDate(0, 0, 7*2)
 
 			break
@@ -982,10 +1011,10 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForYearly() {
 
 			tDay = NextFirstDay(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
+				time.Month(this.ETimeModel.EveryMonthValue),
 				time.Friday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				12).AddDate(0, 0, 7*2)
 
 			break
@@ -993,24 +1022,24 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForYearly() {
 
 			tDay = NextFirstDay(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
+				time.Month(this.ETimeModel.EveryMonthValue),
 				time.Saturday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				12).AddDate(0, 0, 7*2)
 
 			break
 		}
 		break
 	case E_OnFourth:
-		switch this.OnValue {
+		switch this.ETimeModel.OnValue {
 		case E_OnValueDay: // Ayın ikinci günü
 			tDay = time.Date(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
+				time.Month(this.ETimeModel.EveryMonthValue),
 				4,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				0,
 				0,
 				tr_Location)
@@ -1022,9 +1051,9 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForYearly() {
 
 			tDay = FirstWeekday(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				time.Month(this.ETimeModel.EveryMonthValue),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				12).AddDate(0, 0, 7*3)
 
 			break
@@ -1032,9 +1061,9 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForYearly() {
 
 			tDay = FirstWeekendDay(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				time.Month(this.ETimeModel.EveryMonthValue),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				12).AddDate(0, 0, 7*3)
 
 			break
@@ -1042,10 +1071,10 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForYearly() {
 
 			tDay = NextFirstDay(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
+				time.Month(this.ETimeModel.EveryMonthValue),
 				time.Sunday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				12).AddDate(0, 0, 7*3)
 
 			break
@@ -1053,10 +1082,10 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForYearly() {
 
 			tDay = NextFirstDay(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
+				time.Month(this.ETimeModel.EveryMonthValue),
 				time.Monday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				12).AddDate(0, 0, 7*3)
 
 			break
@@ -1064,10 +1093,10 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForYearly() {
 
 			tDay = NextFirstDay(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
+				time.Month(this.ETimeModel.EveryMonthValue),
 				time.Tuesday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				12).AddDate(0, 0, 7*3)
 
 			break
@@ -1075,10 +1104,10 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForYearly() {
 
 			tDay = NextFirstDay(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
+				time.Month(this.ETimeModel.EveryMonthValue),
 				time.Wednesday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				12).AddDate(0, 0, 7*3)
 
 			break
@@ -1086,10 +1115,10 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForYearly() {
 
 			tDay = NextFirstDay(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
+				time.Month(this.ETimeModel.EveryMonthValue),
 				time.Thursday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				12).AddDate(0, 0, 7*3)
 
 			break
@@ -1097,10 +1126,10 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForYearly() {
 
 			tDay = NextFirstDay(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
+				time.Month(this.ETimeModel.EveryMonthValue),
 				time.Friday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				12).AddDate(0, 0, 7*3)
 
 			break
@@ -1108,10 +1137,10 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForYearly() {
 
 			tDay = NextFirstDay(
 				tDay.Year(),
-				time.Month(this.EveryMonthValue),
+				time.Month(this.ETimeModel.EveryMonthValue),
 				time.Saturday,
-				int(this.StartTimeHour),
-				int(this.StartTimeMinute),
+				int(this.ETimeModel.StartTimeHour),
+				int(this.ETimeModel.StartTimeMinute),
 				12).AddDate(0, 0, 7*3)
 
 			break
@@ -1119,11 +1148,13 @@ func (this *ExecutionTimeModel) calcNextExecutionTimeForYearly() {
 		break
 	}
 
-	this.NextExecutingTime = tDay
+	this.ETimeModel.NextExecutingTime = tDay
+
+	return tDay, nil
 }
 
-func (this *ExecutionTimeModel) Calc() {
-	switch this.RecurrencePattern {
+func (this *AppointmentRecurrence) Calc() {
+	switch this.ETimeModel.RecurrencePattern {
 	case E_RecurrencePatternDaily:
 		this.calcNextExecutionTimeForDaily()
 		break
@@ -1138,4 +1169,3 @@ func (this *ExecutionTimeModel) Calc() {
 		break
 	}
 }
-
