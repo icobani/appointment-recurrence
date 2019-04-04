@@ -1153,19 +1153,20 @@ func (this *AppointmentRecurrence) calcNextExecutionTimeForYearly() (time.Time, 
 	return tDay, nil
 }
 
-func (this *AppointmentRecurrence) Calc() {
+func (this *AppointmentRecurrence) Calc() (time.Time, *ErrorStruct) {
 	switch this.ETimeModel.RecurrencePattern {
 	case E_RecurrencePatternDaily:
-		this.calcNextExecutionTimeForDaily()
-		break
+		return this.calcNextExecutionTimeForDaily()
 	case E_RecurrencePatternWeekly:
-		this.calcNextExecutionTimeForWeekly()
-		break
+		return this.calcNextExecutionTimeForWeekly()
 	case E_RecurrencePatternMonthly:
-		this.calcNextExecutionTimeForMonthly()
-		break
+		return this.calcNextExecutionTimeForMonthly()
 	case E_RecurrencePatternYearly:
-		this.calcNextExecutionTimeForYearly()
-		break
+		return this.calcNextExecutionTimeForYearly()
+	default:
+		errTime, _ := time.Parse("2006-01-02", "0001-01-01")
+		return errTime, &ErrorStruct{
+			"Bitiş tarihi geçti",
+		}
 	}
 }
